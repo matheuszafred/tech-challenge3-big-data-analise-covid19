@@ -1,0 +1,329 @@
+#1. Visão geral
+##1.1 Pessoas que apresentaram algum dos sintomas conjugados nos meses de maio, junho e julho
+SELECT
+    maio,
+    junho,
+    julho, 
+    (maio + junho + julho) as Total_Sintomas
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+    abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND indicador = 'Pessoas que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+GROUP BY
+    maio, junho, julho
+LIMIT 1;
+
+
+##Evolução e queda dos meses
+SELECT
+    indicador, 
+    maio AS Total_Maio,
+    junho AS Total_Junho,
+    julho AS Total_Julho,
+    -- Cálculo da variação percentual de junho em relação a maio
+    (junho - maio) / maio * 100 AS Var_Junho_Maio,
+    -- Cálculo da variação percentual de julho em relação a junho
+    (julho - junho) / junho * 100 AS Var_Julho_Junho
+FROM 
+    `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE 
+    abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND indicador = 'Pessoas que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+LIMIT 1;
+
+
+##1.2 Média de casos que apresentaram algum dos sintomas nos meses de maio, junho e julho.
+SELECT
+    indicador, 
+    (maio / 31) AS Media_Maio,
+    (junho / 30) AS Media_Junho,
+    (julho / 31) AS Media_Julho,
+    -- Cálculo da variação percentual de junho em relação a maio
+    (junho - maio) / maio * 100 AS Var_Percentual_Junho_Maio,
+    -- Cálculo da variação percentual de julho em relação a junho
+    (julho - junho) / junho * 100 AS Var_Percentual_Julho_Junho
+FROM 
+    `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE 
+    abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND indicador = 'Pessoas que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+LIMIT 1;
+
+##1.3 Percentual de pessoas que apresentaram sintomas conjugados no total da população, nos meses de maio, junho e julho.
+SELECT
+    indicador, 
+    maio AS Percentual_Maio,
+    junho AS Percentual_Junho,
+    julho AS Percentual_Julho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE 
+    abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND indicador = 'Percentual de pessoas que apresentaram sintomas referenciados conjugados3 no total da população (%)';
+
+#2. Dados demográficos
+## 2.1 Sexo, Cor, Faixa etária e Nivel de instrução
+SELECT
+    var_de_abertura1, 
+    categoria_de_abertura1, 
+    SUM(maio) AS Soma_Maio, 
+    SUM(junho) AS Soma_Junho, 
+    SUM(julho) AS Soma_Julho
+FROM 
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE 
+    indicador = 'Pessoas que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+    AND abertura_territorial = 'Brasil'
+    AND categoria_de_abertura1 NOT IN ('Total', 'Total4', 'Total ')
+    AND var_de_abertura2 = '-'
+GROUP BY
+    var_de_abertura1, 
+    categoria_de_abertura1
+ORDER BY
+    var_de_abertura1;
+
+
+##2.2 Dados regionais
+SELECT 
+    abertura_territorial, 
+    SUM(maio) AS Total_Maio, 
+    SUM(junho) AS Total_Junho, 
+    SUM(julho) AS Total_Julho,    
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM 
+    `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE 
+    indicador = 'Pessoas que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+    AND abertura_territorial NOT LIKE 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND var_de_abertura2 = '-'
+GROUP BY 
+    abertura_territorial;
+
+
+#3 Dados clinicos
+##3.1 Pessoas que apresentaram o sintoma de perda de cheiro ou de sabor, tosse, febre e dificuldade para respirar
+SELECT 
+    indicador,
+    SUM(maio) AS Total_Maio,
+    SUM(junho) AS Total_Junho,
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+        indicador IN (
+        'Pessoas que apresentaram o sintoma de perda de cheiro ou de sabor (mil pessoas)', 
+        'Pessoas que apresentaram os sintomas de tosse, febre e dificuldade para respirar (mil pessoas) ', 
+        'Pessoas que apresentaram os sintomas de tosse, febre e dor no peito (mil pessoas)'
+    )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND var_de_abertura2 = '-'
+GROUP BY 
+    indicador;
+
+##3.2 Pessoas que procuraram estabelecimento de saúde e que apresentaram algum dos sintomas
+SELECT 
+    indicador,
+    SUM(maio) AS Total_Maio,
+    SUM(junho) AS Total_Junho,
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+        indicador IN (
+        'Pessoas que procuraram estabelecimento de saúde e que apresentaram algum dos sintomas (mil pessoas)', 
+        'Pessoas que procuraram atendimento de saúde em hospital (mil pessoas)', 
+        'Pessoas que procuraram atendimento de saúde em hospital e que apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+    )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+    AND var_de_abertura2 = '-'
+GROUP BY 
+    indicador;
+
+##3.3 Pessoas que foram internadas em hospital e ficaram sedadas, intubadas e com respiração artificial
+ SELECT 
+    indicador,
+    SUM(maio) AS Total_Maio,
+    SUM(junho) AS Total_Junho,
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+        indicador IN (
+        'Pessoas que foram internadas e que procuraram hospital (mil pessoas)', 
+        'Pessoas que foram internadas em hospital e ficaram sedadas, intubadas e com respiração artificial (mil pessoas) ', 
+        'Pessoas que foram internadas entre aquelas que procuraram hospital e apresentaram sintomas referenciados conjugados3 (mil pessoas)'
+    )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY 
+    indicador;   
+
+##3.4 Pessoas que fizeram o teste do COVID nos meses de setembro, outubro e novembro.
+ SELECT 
+    indicador,
+    SUM(setembro) AS Total_Setembro,
+    SUM(outubro) AS Total_Outubro,
+    SUM(novembro) AS Total_Novembro,
+    -- Variação percentual de outubro em relação a setembro
+    ROUND(((SUM(outubro) - SUM(setembro)) / SUM(setembro)) * 100, 2) AS Var_Outubro_Sobre_Setembro,    
+    -- Variação percentual de novembro em relação a outubro
+    ROUND(((SUM(novembro) - SUM(outubro)) / SUM(outubro)) * 100, 2) AS Var_Novembro_Sobre_Outubro
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+        indicador IN (
+        'Pessoas que fizeram algum teste para saber se estavam infectadas pelo Coronavírus (mil pessoas)', 
+        'Pessoas que fizeram algum teste para saber se estavam infectadas pelo Coronavírus e testaram positivo (mil pessoas) '
+           )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY 
+    indicador;
+
+##3.5 Pessoas com diagnóstico médico de alguma comorbidade nos meses de setembro, outubro e novembro.
+ SELECT
+    indicador,
+    SUM(setembro) AS Total_Setembro,
+    SUM(outubro) AS Total_Outubro,
+    SUM(novembro) AS Total_Novembro,
+    -- Variação percentual de outubro em relação a setembro
+    ROUND(((SUM(outubro) - SUM(setembro)) / SUM(setembro)) * 100, 2) AS Var_Outubro_Sobre_Setembro,    
+    -- Variação percentual de novembro em relação a outubro
+    ROUND(((SUM(novembro) - SUM(outubro)) / SUM(outubro)) * 100, 2) AS Var_Novembro_Sobre_Outubro
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_saude_br`
+WHERE
+    indicador = 'Pessoas com alguma comorbidade e que testaram positivo em algum dos testes (mil pessoas)'  
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY 
+    indicador;
+
+#4. Dados econômicos e socioeconômicos durante a pandemia (maio, junho e julho)
+##4.1 População residente por região
+SELECT
+    abertura_territorial,
+    SUM(maio) AS Total_Maio, 
+    SUM(junho) AS Total_Junho, 
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 4) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 4) AS Var_Julho_Sobre_Junho
+FROM 
+ `aulas-pos-tech.dadoscovid.tabela_covid19_trabalho_br`
+WHERE 
+    indicador = 'População Residente (mil pessoas)'
+    AND abertura_territorial NOT LIKE 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY
+    abertura_territorial;
+
+##4.2 Pessoas ocupadas e desocupadas
+SELECT 
+    indicador,
+    SUM(maio) AS Total_Maio,
+    SUM(junho) AS Total_Junho,
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_trabalho_br`
+WHERE
+        indicador IN (
+        'Pessoas ocupadas (mil pessoas)', 
+        'Pessoas desocupadas (mil pessoas)',
+        'Pessoas ocupadas e não afastadas (mil pessoas)',
+        'Pessoas ocupadas e afastadas (mil pessoas)'
+           )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY 
+    indicador;
+
+
+##4.3 Numero de pessoas ocupadas afastadas e nao afastadas
+SELECT 
+    indicador,
+    SUM(maio) AS Total_Maio,
+    SUM(junho) AS Total_Junho,
+    SUM(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((SUM(junho) - SUM(maio)) / SUM(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((SUM(julho) - SUM(junho)) / SUM(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_trabalho_br`
+WHERE
+        indicador IN (
+        'Pessoas ocupadas e afastadas do trabalho que tinham devido ao distanciamento social (mil pessoas)', 
+        'Pessoas ocupadas e não afastadas do trabalho, que trabalhavam de forma remota (mil pessoas)'
+           )
+    AND abertura_territorial = 'Brasil'
+    AND var_de_abertura1 = 'Sexo' 
+    AND categoria_de_abertura1 = 'Total'
+GROUP BY 
+    indicador;
+
+##4.4 Rendimento economico durante a pandemia (R$)
+SELECT 
+    indicador,
+    AVG(maio) AS Total_Maio,
+    AVG(junho) AS Total_Junho,
+    AVG(julho) AS Total_Julho,
+    -- Variação percentual de junho em relação a maio
+    ROUND(((AVG(junho) - AVG(maio)) / AVG(maio)) * 100, 2) AS Var_Junho_Sobre_Maio,    
+    -- Variação percentual de julho em relação a junho
+    ROUND(((AVG(julho) - AVG(junho)) / AVG(junho)) * 100, 2) AS Var_Julho_Sobre_Junho
+FROM
+ `aulas-pos-tech.dadoscovid.tabela_covid19_trabalho_br`
+WHERE
+    indicador IN (
+        'Rendimento real domiciliar per capita médio efetivamente recebido (R$)',
+        'Média do rendimento proveniente do auxílio emergencial recebido pelos domicílios (R$)'
+    )
+    AND abertura_territorial = 'Brasil'
+GROUP BY 
+    indicador
+LIMIT 2;
+
+
+
+
